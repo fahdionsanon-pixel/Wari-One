@@ -1,0 +1,65 @@
+// For information on how to create your own theme, please refer to:
+// https://ionicframework.com/docs/theming/
+
+// Couleurs Wari
+:wari-primary {
+  --ion-color-primary: #2563eb;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-shade: #1d4ed8;
+  --ion-color-primary-tint: #3b82f6;
+}
+
+:wari-secondary {
+  --ion-color-secondary: #64748b;
+  --ion-color-secondary-contrast: #ffffff;
+  --ion-color-secondary-shade: #475569;
+  --ion-color-secondary-tint: #94a3b8;
+}
+
+// Gradients
+.gradient-wari {
+  --background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+}
+
+// Card styles
+.card-wari {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  padding: 24px;
+}
+
+// Input styles
+.input-wari {
+  --background: #f8fafc;
+  --border-radius: 12px;
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --padding-top: 14px;
+  --padding-bottom: 14px;
+  --border-color: #e2e8f0;
+  --border-width: 1px;
+  --color: #1e293b;
+  --placeholder-color: #94a3b8;
+}
+
+// Button styles
+.btn-wari {
+  --border-radius: 12px;
+  --height: 52px;
+  --font-weight: 600;
+  font-size: 16px;
+}
+
+// Text styles
+.title-wari {
+  font-weight: 700;
+  font-size: 1.2em;
+  letter-spacing: -0.5px;
+}
+
+.subtitle-wari {
+  font-size: 0.85em;
+  opacity: 0.7;
+  font-weight: 400;
+}

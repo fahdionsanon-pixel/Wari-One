@@ -1,0 +1,110 @@
+/* Page Historique - Styles naturels */
+.history-wrap {
+  padding: 20px 16px 40px;
+  background: linear-gradient(135deg, #f0f4ff 0%, #fafcff 100%);
+  min-height: 100%;
+}
+
+.history-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 20px;
+  padding: 0 4px;
+}
+
+.history-header ion-icon {
+  font-size: 22px;
+  color: #2563eb;
+}
+
+.history-list {
+  background: transparent;
+  margin: 0;
+  padding: 0;
+}
+
+.history-item {
+  --background: #ffffff;
+  --border-radius: 14px;
+  --margin-bottom: 10px;
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --padding-top: 14px;
+  --padding-bottom: 14px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+}
+
+.avatar-sent {
+  background: linear-gradient(135deg, #fee2e2, #fecaca);
+}
+
+.avatar-received {
+  background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+}
+
+.avatar-sent ion-icon,
+.avatar-received ion-icon {
+  font-size: 22px;
+}
+
+.avatar-sent ion-icon {
+  color: #dc2626;
+}
+
+.avatar-received ion-icon {
+  color: #16a34a;
+}
+
+.transaction-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 4px;
+}
+
+.transaction-date {
+  font-size: 13px;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.amount-sent {
+  color: #dc2626;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.amount-received {
+  color: #16a34a;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #94a3b8;
+}
+
+.empty-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+  opacity: 0.4;
+}
+
+.empty-state p {
+  font-size: 15px;
+  margin: 0;
+}
+
+.error-msg {
+  margin-top: 24px;
+  font-size: 14px;
+  text-align: center;
+  padding: 0 16px;
+}

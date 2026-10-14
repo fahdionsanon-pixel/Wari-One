@@ -1,0 +1,168 @@
+<ion-content class="ion-padding" (click)="blurActiveElement()">
+  <div class="register-wrap" (click)="$event.stopPropagation()">
+
+    <div class="register-card">
+
+      <div class="register-header">
+        <div class="logo-badge">
+          <ion-icon name="wallet-outline"></ion-icon>
+        </div>
+        <h1 class="register-title">Wari</h1>
+        <p class="register-subtitle">Créer un compte</p>
+      </div>
+
+      <!-- Step indicator -->
+      <div class="step-indicator">
+        <div class="step-dot" [class.active]="step >= 1" [class.done]="step > 1">
+          <ion-icon *ngIf="step > 1" name="checkmark-circle"></ion-icon>
+          <span *ngIf="step === 1">1</span>
+        </div>
+        <div class="step-line" [class.active]="step >= 2"></div>
+        <div class="step-dot" [class.active]="step >= 2" [class.done]="step > 2">
+          <ion-icon *ngIf="step > 2" name="checkmark-circle"></ion-icon>
+          <span *ngIf="step === 2">2</span>
+        </div>
+        <div class="step-line" [class.active]="step >= 3"></div>
+        <div class="step-dot" [class.active]="step >= 3">
+          <span *ngIf="step === 3">3</span>
+        </div>
+      </div>
+
+      <!-- Step 1: Phone -->
+      <div *ngIf="step === 1" class="step-content">
+        <div class="step-icon">
+          <ion-icon name="phone-portrait-outline"></ion-icon>
+        </div>
+        <h2>Votre numéro de téléphone</h2>
+        <p>Saisissez votre numéro pour recevoir un code de vérification.</p>
+
+        <div class="input-group">
+          <label class="input-label" for="phone">
+            <ion-icon name="phone-portrait-outline"></ion-icon>
+            Numéro de téléphone
+          </label>
+          <input
+            id="phone"
+            class="input-field"
+            type="tel"
+            inputmode="numeric"
+            [(ngModel)]="phone"
+            name="phone"
+            placeholder="221 700 00 00"
+            (keyup.enter)="sendOtp()"
+          >
+          <div class="input-line"></div>
+        </div>
+
+        <button type="button" class="btn-primary" (click)="sendOtp()" [disabled]="loading">
+          <span class="btn-text">{{ loading ? 'Envoi...' : 'Recevoir le code' }}</span>
+          <ion-icon name="arrow-forward"></ion-icon>
+        </button>
+      </div>
+
+      <!-- Step 2: OTP -->
+      <div *ngIf="step === 2" class="step-content">
+        <div class="step-icon">
+          <ion-icon name="shield-checkmark-outline"></ion-icon>
+        </div>
+        <h2>Vérifiez votre numéro</h2>
+        <p>Entrez le code à 6 chiffres envoyé au <strong>{{ phone }}</strong>.</p>
+
+        <ion-text *ngIf="info" color="primary" class="info-text">
+          <p>{{ info }}</p>
+        </ion-text>
+
+        <div class="input-group">
+          <label class="input-label" for="otp">
+            <ion-icon name="key-outline"></ion-icon>
+            Code OTP
+          </label>
+          <input
+            id="otp"
+            class="input-field input-center"
+            type="tel"
+            inputmode="numeric"
+            maxlength="6"
+            [(ngModel)]="otp"
+            name="otp"
+            placeholder="1 2 3 4 5 6"
+            (keyup.enter)="checkOtp()"
+          >
+          <div class="input-line"></div>
+        </div>
+
+        <button type="button" class="btn-primary" (click)="checkOtp()" [disabled]="loading">
+          <span class="btn-text">{{ loading ? 'Vérification...' : 'Vérifier le code' }}</span>
+          <ion-icon name="arrow-forward"></ion-icon>
+        </button>
+
+        <button type="button" class="btn-link" (click)="changeNumber()">
+          <ion-icon name="pencil-outline"></ion-icon>
+          Modifier le numéro
+        </button>
+      </div>
+
+      <!-- Step 3: PIN -->
+      <div *ngIf="step === 3" class="step-content">
+        <div class="step-icon">
+          <ion-icon name="lock-closed-outline"></ion-icon>
+        </div>
+        <h2>Créez votre code PIN</h2>
+        <p>Choisissez un code à 4 chiffres pour sécuriser votre compte.</p>
+
+        <div class="input-group">
+          <label class="input-label" for="pin">
+            <ion-icon name="lock-closed-outline"></ion-icon>
+            Code PIN
+          </label>
+          <input
+            id="pin"
+            class="input-field"
+            type="password"
+            inputmode="numeric"
+            maxlength="4"
+            [(ngModel)]="pin"
+            name="pin"
+            placeholder="• • • •"
+          >
+          <div class="input-line"></div>
+        </div>
+
+        <div class="input-group">
+          <label class="input-label" for="pinConfirm">
+            <ion-icon name="repeat-outline"></ion-icon>
+            Confirmer le code PIN
+          </label>
+          <input
+            id="pinConfirm"
+            class="input-field"
+            type="password"
+            inputmode="numeric"
+            maxlength="4"
+            [(ngModel)]="pinConfirm"
+            name="pinConfirm"
+            placeholder="• • • •"
+            (keyup.enter)="createAccount()"
+          >
+          <div class="input-line"></div>
+        </div>
+
+        <button type="button" class="btn-primary" (click)="createAccount()" [disabled]="loading">
+          <span class="btn-text">{{ loading ? 'Création...' : 'Créer mon compte' }}</span>
+          <ion-icon name="person-add-outline"></ion-icon>
+        </button>
+      </div>
+
+      <ion-text color="danger" class="error-msg" *ngIf="message">
+        <p>{{ message }}</p>
+      </ion-text>
+
+      <div class="register-footer">
+        <a routerLink="/login" class="link-login">
+          Déjà un compte ? <strong>Se connecter</strong>
+        </a>
+      </div>
+
+    </div>
+  </div>
+</ion-content>

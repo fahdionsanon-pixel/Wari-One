@@ -1,0 +1,75 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home"></ion-back-button>
+    </ion-buttons>
+    <ion-title class="title-wari">Wari</ion-title>
+    <div class="subtitle-wari">Envoyer de l'argent</div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding" (click)="blurActiveElement()">
+  <div class="send-wrap" (click)="$event.stopPropagation()">
+    <div class="send-card">
+      <div class="send-icon">
+        <ion-icon name="paper-plane-outline"></ion-icon>
+      </div>
+      <h2>Transfert d'argent</h2>
+      <p>Indiquez le destinataire, le montant, et confirmez avec votre code PIN.</p>
+
+      <ion-input
+        class="input-wari"
+        label="Numéro du destinataire"
+        labelPlacement="floating"
+        type="tel"
+        inputmode="numeric"
+        [(ngModel)]="toPhone"
+        placeholder="Ex: 22170000000"
+      >
+      </ion-input>
+
+      <ion-input
+        class="input-wari"
+        label="Montant"
+        labelPlacement="floating"
+        type="number"
+        [(ngModel)]="amount"
+        placeholder="Ex: 2500"
+      >
+      </ion-input>
+
+      <div class="pin-section">
+        <div class="pin-label">
+          <ion-icon name="lock-closed-outline"></ion-icon>
+          <span>Votre code PIN de confirmation</span>
+        </div>
+        <ion-input
+          class="input-wari input-center"
+          type="password"
+          inputmode="numeric"
+          maxlength="4"
+          [(ngModel)]="pin"
+          placeholder="• • • •"
+          (keyup.enter)="send()"
+        >
+        </ion-input>
+        <p class="pin-hint">Le PIN est requis pour chaque envoi, par sécurité.</p>
+      </div>
+
+      <ion-button
+        class="btn-wari"
+        type="button"
+        expand="block"
+        (click)="send()"
+        [disabled]="loading"
+      >
+        <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+        {{ loading ? 'Traitement...' : 'Confirmer et envoyer' }}
+      </ion-button>
+
+      <ion-text color="danger" class="error-msg" *ngIf="message">
+        <p>{{ message }}</p>
+      </ion-text>
+    </div>
+  </div>
+</ion-content>

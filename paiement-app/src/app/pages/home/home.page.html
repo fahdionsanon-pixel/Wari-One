@@ -1,0 +1,51 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title class="title-wari">Wari</ion-title>
+    <div class="subtitle-wari">Mon portefeuille</div>
+    <ion-buttons slot="end">
+      <ion-button (click)="logout()" class="logout-btn">
+        <ion-icon name="log-out-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding" (click)="blurActiveElement()">
+  <div class="home-wrap" (click)="$event.stopPropagation()">
+
+    <div class="balance-card" [class.error]="message">
+      <div class="balance-glow"></div>
+      <div class="balance-content">
+        <div class="balance-label">
+          <ion-icon name="wallet-outline"></ion-icon>
+          <span>Solde disponible</span>
+        </div>
+        <div class="balance-value">
+          <span class="currency">FCFA</span>
+          <span class="amount" *ngIf="balance !== null">{{ balance | number }}</span>
+          <span class="amount" *ngIf="balance === null">...</span>
+        </div>
+        <div class="balance-hint">Argent fictif à usage démonstratif</div>
+      </div>
+    </div>
+
+    <div class="action-buttons">
+      <button class="btn-primary" routerLink="/send">
+        <ion-icon name="paper-plane-outline"></ion-icon>
+        <span>Envoyer de l'argent</span>
+        <ion-icon name="arrow-forward"></ion-icon>
+      </button>
+
+      <button class="btn-secondary" routerLink="/history">
+        <ion-icon name="list-outline"></ion-icon>
+        <span>Voir l'historique</span>
+        <ion-icon name="arrow-forward"></ion-icon>
+      </button>
+    </div>
+
+    <ion-text color="danger" class="error-msg" *ngIf="message">
+      <p>{{ message }}</p>
+    </ion-text>
+
+  </div>
+</ion-content>

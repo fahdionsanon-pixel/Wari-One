@@ -1,0 +1,69 @@
+<ion-content class="ion-padding" (click)="blurActiveElement()">
+  <div class="login-wrap" (click)="$event.stopPropagation()">
+    <div class="login-card">
+
+      <div class="login-header">
+        <div class="logo-badge">
+          <ion-icon name="wallet-outline"></ion-icon>
+        </div>
+        <h1 class="login-title">Wari</h1>
+        <p class="login-subtitle">Portefeuille mobile</p>
+      </div>
+
+      <form (ngSubmit)="login()" #loginForm="ngForm" class="login-form">
+        <div class="input-group">
+          <label class="input-label" for="phone">
+            <ion-icon name="phone-portrait-outline"></ion-icon>
+            Numéro de téléphone
+          </label>
+          <input
+            id="phone"
+            class="input-field"
+            type="tel"
+            inputmode="numeric"
+            [(ngModel)]="phone"
+            name="phone"
+            placeholder="221 700 00 00"
+            autocomplete="tel"
+          >
+          <div class="input-line"></div>
+        </div>
+
+        <div class="input-group">
+          <label class="input-label" for="pin">
+            <ion-icon name="lock-closed-outline"></ion-icon>
+            Code PIN
+          </label>
+          <input
+            id="pin"
+            class="input-field"
+            type="password"
+            inputmode="numeric"
+            maxlength="4"
+            [(ngModel)]="pin"
+            name="pin"
+            placeholder="• • • •"
+            autocomplete="current-password"
+          >
+          <div class="input-line"></div>
+        </div>
+
+        <button type="submit" class="btn-primary" [disabled]="loading">
+          <span class="btn-text">{{ loading ? 'Connexion...' : 'Se connecter' }}</span>
+          <ion-icon name="arrow-forward"></ion-icon>
+        </button>
+      </form>
+
+      <div class="login-footer">
+        <a routerLink="/register" class="link-register">
+          Pas encore de compte ? <strong>Créer un compte</strong>
+        </a>
+      </div>
+
+      <ion-text color="danger" class="error-msg" *ngIf="message">
+        <p>{{ message }}</p>
+      </ion-text>
+
+    </div>
+  </div>
+</ion-content>
