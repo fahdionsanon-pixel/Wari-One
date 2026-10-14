@@ -1,75 +1,101 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-back-button defaultHref="/home"></ion-back-button>
-    </ion-buttons>
-    <ion-title class="title-wari">Wari</ion-title>
-    <div class="subtitle-wari">Envoyer de l'argent</div>
-  </ion-toolbar>
-</ion-header>
+<ion-content [fullscreen]="true" class="send-content">
+  <div class="send-wrap">
 
-<ion-content class="ion-padding" (click)="blurActiveElement()">
-  <div class="send-wrap" (click)="$event.stopPropagation()">
+    <!-- Header -->
+    <div class="send-header">
+      <button type="button" class="btn-back" routerLink="/home" title="Retour">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </button>
+      <h1 class="send-title">Envoyer de l'argent</h1>
+      <div style="width:44px"></div>
+    </div>
+
     <div class="send-card">
-      <div class="send-icon">
-        <ion-icon name="paper-plane-outline"></ion-icon>
-      </div>
-      <h2>Transfert d'argent</h2>
-      <p>Indiquez le destinataire, le montant, et confirmez avec votre code PIN.</p>
+      <p class="send-sub">Indiquez le destinataire, le montant, et confirmez avec votre code PIN.</p>
 
-      <ion-input
-        class="input-wari"
-        label="Numéro du destinataire"
-        labelPlacement="floating"
-        type="tel"
-        inputmode="numeric"
-        [(ngModel)]="toPhone"
-        placeholder="Ex: 22170000000"
-      >
-      </ion-input>
-
-      <ion-input
-        class="input-wari"
-        label="Montant"
-        labelPlacement="floating"
-        type="number"
-        [(ngModel)]="amount"
-        placeholder="Ex: 2500"
-      >
-      </ion-input>
-
-      <div class="pin-section">
-        <div class="pin-label">
-          <ion-icon name="lock-closed-outline"></ion-icon>
-          <span>Votre code PIN de confirmation</span>
+      <!-- Destinataire -->
+      <div class="input-group">
+        <label class="input-label" for="toPhone">
+          <ion-icon name="person-outline"></ion-icon>
+          Numéro du destinataire
+        </label>
+        <div class="input-row">
+          <input
+            id="toPhone"
+            class="native-input"
+            type="tel"
+            inputmode="numeric"
+            [(ngModel)]="toPhone"
+            placeholder="Ex: 22170000000"
+            autocomplete="tel"
+          />
         </div>
-        <ion-input
-          class="input-wari input-center"
+      </div>
+
+      <!-- Montant -->
+      <div class="input-group">
+        <label class="input-label" for="amount">
+          <ion-icon name="cash-outline"></ion-icon>
+          Montant (FCFA)
+        </label>
+        <div class="quick-amounts-grid">
+          <button type="button" class="quick-amt-btn"
+            *ngFor="let amt of [500, 1000, 2000, 5000, 10000, 25000]"
+            [class.selected]="amount === amt"
+            (click)="amount = amt">
+            {{ amt | number }} F
+          </button>
+        </div>
+        <div class="input-row">
+          <input
+            id="amount"
+            class="native-input"
+            type="number"
+            inputmode="numeric"
+            [(ngModel)]="amount"
+            placeholder="Ou saisir un montant..."
+            min="1"
+          />
+          <span class="currency-tag">FCFA</span>
+        </div>
+      </div>
+
+      <!-- Code PIN -->
+      <div class="input-group">
+        <label class="input-label" for="pin">
+          <ion-icon name="lock-closed-outline"></ion-icon>
+          Code PIN de confirmation
+        </label>
+        <input
+          id="pin"
+          class="native-input pin-input"
           type="password"
           inputmode="numeric"
           maxlength="4"
           [(ngModel)]="pin"
           placeholder="• • • •"
           (keyup.enter)="send()"
-        >
-        </ion-input>
-        <p class="pin-hint">Le PIN est requis pour chaque envoi, par sécurité.</p>
+        />
+        <p class="pin-hint">Votre PIN est requis pour valider l'envoi.</p>
       </div>
 
-      <ion-button
-        class="btn-wari"
+      <!-- Erreur -->
+      <div *ngIf="message" class="error-box">
+        <ion-icon name="warning-outline"></ion-icon>
+        <span>{{ message }}</span>
+      </div>
+
+      <!-- Bouton Envoyer -->
+      <button
         type="button"
-        expand="block"
+        class="btn-send"
         (click)="send()"
         [disabled]="loading"
       >
-        <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
-        {{ loading ? 'Traitement...' : 'Confirmer et envoyer' }}
-      </ion-button>
-
-      <ion-text color="danger" class="error-msg" *ngIf="message">
-        <p>{{ message }}</p>
-      </ion-text>
+        <ion-icon name="paper-plane-outline"></ion-icon>
+        {{ loading ? 'Traitement en cours...' : 'Confirmer et envoyer' }}
+      </button>
     </div>
+
   </div>
 </ion-content>

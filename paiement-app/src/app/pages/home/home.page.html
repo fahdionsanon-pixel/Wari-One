@@ -1,53 +1,470 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title class="title-wari">Wari</ion-title>
-    <div class="subtitle-wari">Mon portefeuille</div>
-    <ion-buttons slot="end">
-      <ion-button (click)="logout()" class="logout-btn">
-        <ion-icon name="log-out-outline"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-  </ion-toolbar>
-</ion-header>
+<ion-content [fullscreen]="true" class="home-content">
+  <div class="home-container">
 
-<ion-content class="ion-padding" (click)="blurActiveElement()">
-  <div class="home-wrap" (click)="$event.stopPropagation()">
+    <!-- Section Supérieure Bleue (Hero) -->
+    <div class="hero-section">
+      <!-- Safe area spacer pour status bar mobile -->
+      <div class="safe-area-top"></div>
 
-    <div class="balance-card" [class.error]="message">
-      <div class="balance-glow"></div>
-      <div class="balance-content">
-        <div class="balance-label">
-          <ion-icon name="wallet-outline"></ion-icon>
-          <span>Solde disponible</span>
+      <!-- Header : Profil & Actions -->
+      <div class="top-header">
+        <div class="user-profile">
+          <div class="avatar-circle">
+            <ion-icon name="person-outline"></ion-icon>
+          </div>
+          <span class="greeting-text">{{ userName }}</span>
         </div>
-        <div class="balance-value">
-          <span class="currency">FCFA</span>
-          <span class="amount" *ngIf="balance !== null">{{ balance | number }}</span>
-          <span class="amount" *ngIf="balance === null">...</span>
+
+        <div class="header-actions">
+          <button type="button" class="glass-icon-btn" (click)="logout()" title="Déconnexion">
+            <ion-icon name="log-out-outline"></ion-icon>
+          </button>
         </div>
-        <div class="balance-phone">
-          <span>{{ auth.getPhone() }}</span>
+      </div>
+
+      <!-- Solde disponible -->
+      <div class="balance-section">
+        <p class="balance-title">Solde disponible</p>
+        <div class="balance-value-row">
+          <span class="balance-text">
+            {{ isBalanceVisible ? ((balance !== null ? (balance | number) : '0') + ' FCFA') : '•••••• FCFA' }}
+          </span>
+          <button type="button" class="eye-toggle-btn" (click)="toggleBalanceVisibility()" [title]="isBalanceVisible ? 'Masquer le solde' : 'Afficher le solde'">
+            <ion-icon [name]="isBalanceVisible ? 'eye-outline' : 'eye-off-outline'"></ion-icon>
+          </button>
+        </div>
+        <p class="balance-phone">{{ userPhone }}</p>
+      </div>
+
+      <!-- 4 Boutons d'Action Principaux -->
+      <div class="main-actions-grid">
+        <div class="action-item" (click)="goTo('/send')">
+          <div class="action-circle-btn">
+            <ion-icon name="paper-plane-outline"></ion-icon>
+          </div>
+          <span class="action-label">Envoyer</span>
+        </div>
+
+        <div class="action-item" (click)="openScanner()">
+          <div class="action-circle-btn">
+            <ion-icon name="scan-outline"></ion-icon>
+          </div>
+          <span class="action-label">Scanner</span>
+        </div>
+
+        <div class="action-item" (click)="openDeposit()">
+          <div class="action-circle-btn">
+            <ion-icon name="add-outline"></ion-icon>
+          </div>
+          <span class="action-label">Déposer</span>
+        </div>
+
+        <div class="action-item" (click)="openWithdraw()">
+          <div class="action-circle-btn">
+            <ion-icon name="arrow-up-circle-outline"></ion-icon>
+          </div>
+          <span class="action-label">Retrait</span>
         </div>
       </div>
     </div>
 
-    <div class="action-buttons">
-      <button class="btn-primary" routerLink="/send">
-        <ion-icon name="paper-plane-outline"></ion-icon>
-        <span>Envoyer de l'argent</span>
-        <ion-icon name="arrow-forward"></ion-icon>
-      </button>
+    <!-- Section Inférieure Claire -->
+    <div class="body-section">
 
-      <button class="btn-secondary" routerLink="/history">
-        <ion-icon name="list-outline"></ion-icon>
-        <span>Voir l'historique</span>
-        <ion-icon name="arrow-forward"></ion-icon>
-      </button>
+      <!-- Carte "Mon QR Code de Compte" -->
+      <div class="qr-account-card">
+        <div class="qr-card-header">
+          <div class="qr-badge">
+            <ion-icon name="qr-code-outline"></ion-icon>
+            <span>Mon QR Code de Compte</span>
+          </div>
+          <button type="button" class="btn-expand" (click)="openQrModal()">
+            <ion-icon name="scan-outline"></ion-icon>
+            <span>Agrandir</span>
+          </button>
+        </div>
+
+        <div class="qr-card-content">
+          <div class="qr-code-box" (click)="openQrModal()" title="Cliquer pour agrandir">
+            <img *ngIf="qrCodeDataUrl" [src]="qrCodeDataUrl" alt="Mon QR Code" class="qr-code-image" />
+            <div *ngIf="!qrCodeDataUrl" class="qr-loading">
+              <ion-spinner name="crescent" color="primary"></ion-spinner>
+            </div>
+          </div>
+
+          <div class="account-details">
+            <span class="account-tag">NUMÉRO DU COMPTE</span>
+            <span class="account-phone">{{ userPhone }}</span>
+            <p class="account-instructions">
+              Présentez ce QR Code pour que l'autre utilisateur le scanne et effectue un dépôt instantané sur ce compte.
+            </p>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- Section Transactions -->
+      <div class="transactions-container">
+        <h2 class="transactions-title">Transactions</h2>
+
+        <!-- Barre de recherche -->
+        <div class="search-field-wrap">
+          <ion-icon name="search-outline" class="search-icon"></ion-icon>
+          <input
+            type="text"
+            class="search-input"
+            [(ngModel)]="searchQuery"
+            (input)="filterTransactions()"
+            placeholder="Rechercher..."
+          />
+          <button *ngIf="searchQuery" class="clear-search-btn" (click)="searchQuery = ''; filterTransactions()">
+            <ion-icon name="close-circle"></ion-icon>
+          </button>
+        </div>
+
+        <!-- Filtres Onglets : Tous | Entrées | Sorties -->
+        <div class="filter-tabs-row">
+          <button
+            type="button"
+            class="filter-pill"
+            [class.active]="currentFilter === 'all'"
+            (click)="setFilter('all')"
+          >
+            Tous
+          </button>
+          <button
+            type="button"
+            class="filter-pill"
+            [class.active]="currentFilter === 'in'"
+            (click)="setFilter('in')"
+          >
+            Entrées
+          </button>
+          <button
+            type="button"
+            class="filter-pill"
+            [class.active]="currentFilter === 'out'"
+            (click)="setFilter('out')"
+          >
+            Sorties
+          </button>
+        </div>
+
+        <!-- Liste des transactions -->
+        <div class="transactions-list-area">
+          <div *ngIf="filteredTransactions.length > 0" class="tx-items">
+            <div *ngFor="let tx of filteredTransactions" class="tx-card">
+              <div class="tx-icon-wrap"
+                [class.in]="tx.type === 'recu' || tx.type === 'depot'"
+                [class.out]="tx.type === 'envoye' || tx.type === 'retrait'">
+                <ion-icon [name]="
+                  tx.type === 'recu' ? 'arrow-down-outline' :
+                  tx.type === 'depot' ? 'add-outline' :
+                  tx.type === 'retrait' ? 'arrow-up-outline' :
+                  'arrow-up-outline'
+                "></ion-icon>
+              </div>
+              <div class="tx-info">
+                <span class="tx-title">{{
+                  tx.type === 'recu' ? 'Reçu de ' + tx.other :
+                  tx.type === 'depot' ? 'Dépôt' :
+                  tx.type === 'retrait' ? 'Retrait' :
+                  'Envoyé à ' + tx.other
+                }}</span>
+                <span class="tx-date">{{ tx.date ? (tx.date | date:'dd MMM yyyy à HH:mm') : 'Transaction récente' }}</span>
+              </div>
+              <div class="tx-amount"
+                [class.in]="tx.type === 'recu' || tx.type === 'depot'"
+                [class.out]="tx.type === 'envoye' || tx.type === 'retrait'">
+                {{ (tx.type === 'recu' || tx.type === 'depot') ? '+' : '-' }}{{ tx.amount | number }} FCFA
+              </div>
+            </div>
+          </div>
+
+          <!-- État vide (conforme à la capture d'écran) -->
+          <div *ngIf="filteredTransactions.length === 0 && !loadingTransactions" class="empty-tx-state">
+            <div class="empty-icon-halo">
+              <div class="empty-circle-icon">
+                <ion-icon name="arrow-forward-outline"></ion-icon>
+              </div>
+            </div>
+            <p class="empty-tx-text">Aucune transaction trouvée</p>
+          </div>
+
+          <div *ngIf="loadingTransactions" class="loading-tx-state">
+            <ion-spinner name="crescent" color="primary"></ion-spinner>
+            <p>Chargement des transactions...</p>
+          </div>
+        </div>
+
+      </div>
+
     </div>
 
-    <ion-text color="danger" class="error-msg" *ngIf="message">
-      <p>{{ message }}</p>
-    </ion-text>
-
   </div>
+
+  <!-- Modal Agrandir QR Code -->
+  <div *ngIf="isQrModalOpen" class="modal-backdrop" (click)="closeQrModal()">
+    <div class="qr-modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Mon QR Code de Compte</h3>
+        <button type="button" class="modal-close-btn" (click)="closeQrModal()">
+          <ion-icon name="close-outline"></ion-icon>
+        </button>
+      </div>
+
+      <div class="modal-qr-preview">
+        <img [src]="qrCodeDataUrl" alt="QR Code Agrandit" class="large-qr-img" />
+      </div>
+
+      <div class="modal-account-box">
+        <span class="modal-acc-title">NUMÉRO DU COMPTE</span>
+        <div class="modal-acc-number-row">
+          <span class="modal-acc-num">{{ userPhone }}</span>
+          <button type="button" class="btn-copy" (click)="copyPhone()">
+            <ion-icon [name]="copyFeedback ? 'checkmark-outline' : 'copy-outline'"></ion-icon>
+            <span>{{ copyFeedback ? 'Copié !' : 'Copier' }}</span>
+          </button>
+        </div>
+      </div>
+
+      <p class="modal-hint">
+        Faites scanner ce code pour recevoir de l'argent instantanément.
+      </p>
+
+      <button type="button" class="modal-done-btn" (click)="closeQrModal()">
+        Terminé
+      </button>
+    </div>
+  </div>
+
+  <!-- Modal Scanner Réel -->
+  <div *ngIf="isScannerModalOpen" class="modal-backdrop" (click)="closeScanner()">
+    <div class="scanner-modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="scanner-header-left">
+          <div class="modal-icon-badge scanner-badge">
+            <ion-icon name="qr-code-outline"></ion-icon>
+          </div>
+          <h3>Scanner un QR Code</h3>
+        </div>
+        <div class="scanner-header-actions">
+          <button
+            type="button"
+            class="modal-icon-btn"
+            *ngIf="hasMultipleCameras"
+            (click)="toggleCameraFacing()"
+            title="Changer de caméra"
+          >
+            <ion-icon name="camera-reverse-outline"></ion-icon>
+          </button>
+          <button type="button" class="modal-close-btn" (click)="closeScanner()" title="Fermer">
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+        </div>
+      </div>
+
+      <!-- Zone de visée avec flux vidéo direct -->
+      <div class="scanner-viewfinder" [class.success]="scannerSuccess">
+        <!-- Flux vidéo de la caméra -->
+        <video id="scannerVideo" autoplay playsinline muted></video>
+
+        <!-- Loader lors du démarrage de la caméra -->
+        <div *ngIf="scannerLoading" class="scanner-loader-overlay">
+          <ion-spinner name="crescent" color="primary"></ion-spinner>
+          <p>Initialisation de la caméra...</p>
+        </div>
+
+        <!-- Message d'erreur caméra avec bouton réessayer -->
+        <div *ngIf="scannerError && !scannerLoading" class="scanner-error-overlay">
+          <ion-icon name="videocam-off-outline"></ion-icon>
+          <p class="scanner-err-text">{{ scannerError }}</p>
+          <button type="button" class="btn-retry-cam" (click)="startCameraScan()">
+            <ion-icon name="refresh-outline"></ion-icon>
+            <span>Réessayer</span>
+          </button>
+        </div>
+
+        <!-- Cadre de détection et laser scanner -->
+        <div class="scanner-frame" *ngIf="!scannerError">
+          <div class="corner tl"></div>
+          <div class="corner tr"></div>
+          <div class="corner bl"></div>
+          <div class="corner br"></div>
+          <div class="scanner-laser" *ngIf="!scannerSuccess"></div>
+        </div>
+
+        <!-- Overlay de succès lors de la détection -->
+        <div *ngIf="scannerSuccess" class="scanner-success-badge">
+          <ion-icon name="checkmark-circle"></ion-icon>
+          <span>Numéro détecté : {{ scannedPhone }}</span>
+        </div>
+      </div>
+
+      <p class="scanner-help-text">
+        Pointez la caméra vers le code QR Wari du destinataire
+      </p>
+
+      <!-- Options d'importation et de saisie -->
+      <div class="scanner-action-buttons">
+        <label class="btn-scanner-action gallery-action">
+          <ion-icon name="image-outline"></ion-icon>
+          <span>Choisir une photo</span>
+          <input
+            type="file"
+            accept="image/*"
+            (change)="onQrFileSelected($event)"
+            style="display: none;"
+          />
+        </label>
+
+        <button
+          type="button"
+          class="btn-scanner-action manual-action"
+          (click)="closeScanner(); goTo('/send')"
+        >
+          <ion-icon name="keypad-outline"></ion-icon>
+          <span>Saisie manuelle</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Dépôt -->
+  <div *ngIf="isDepositModalOpen" class="modal-backdrop" (click)="closeDeposit()">
+    <div class="action-modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title-row">
+          <div class="modal-icon-badge deposit-badge">
+            <ion-icon name="add-circle-outline"></ion-icon>
+          </div>
+          <h3>Déposer de l'argent</h3>
+        </div>
+        <button type="button" class="modal-close-btn" (click)="closeDeposit()">
+          <ion-icon name="close-outline"></ion-icon>
+        </button>
+      </div>
+
+      <p class="modal-sub">Choisissez ou saisissez un montant à déposer sur votre compte.</p>
+
+      <!-- Montants rapides -->
+      <div class="quick-amounts-grid">
+        <button type="button" class="quick-amt-btn"
+          *ngFor="let amt of [1000, 2000, 5000, 10000, 25000, 50000]"
+          [class.selected]="depositAmount === amt"
+          (click)="selectDepositAmount(amt)">
+          {{ amt | number }} F
+        </button>
+      </div>
+
+      <!-- Saisie manuelle -->
+      <div class="manual-input-wrap">
+        <label class="manual-label">Ou saisir un montant :</label>
+        <div class="manual-input-row">
+          <input
+            type="number"
+            class="manual-input"
+            [(ngModel)]="depositAmount"
+            (ngModelChange)="depositError = ''"
+            placeholder="Ex: 15000"
+            min="1"
+          />
+          <span class="currency-badge">FCFA</span>
+        </div>
+      </div>
+
+      <p *ngIf="depositError" class="modal-error">{{ depositError }}</p>
+
+      <button
+        type="button"
+        class="btn-modal-confirm deposit-confirm"
+        (click)="confirmDeposit()"
+        [disabled]="depositLoading"
+      >
+        <ion-icon name="checkmark-circle-outline"></ion-icon>
+        {{ depositLoading ? 'Traitement...' : 'Confirmer le dépôt' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Modal Retrait -->
+  <div *ngIf="isWithdrawModalOpen" class="modal-backdrop" (click)="closeWithdraw()">
+    <div class="action-modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title-row">
+          <div class="modal-icon-badge withdraw-badge">
+            <ion-icon name="arrow-up-circle-outline"></ion-icon>
+          </div>
+          <h3>Retirer de l'argent</h3>
+        </div>
+        <button type="button" class="modal-close-btn" (click)="closeWithdraw()">
+          <ion-icon name="close-outline"></ion-icon>
+        </button>
+      </div>
+
+      <p class="modal-sub">Choisissez un montant et confirmez avec votre code PIN.</p>
+
+      <!-- Montants rapides -->
+      <div class="quick-amounts-grid">
+        <button type="button" class="quick-amt-btn"
+          *ngFor="let amt of [1000, 2000, 5000, 10000, 25000, 50000]"
+          [class.selected]="withdrawAmount === amt"
+          (click)="selectWithdrawAmount(amt)">
+          {{ amt | number }} F
+        </button>
+      </div>
+
+      <!-- Saisie manuelle -->
+      <div class="manual-input-wrap">
+        <label class="manual-label">Ou saisir un montant :</label>
+        <div class="manual-input-row">
+          <input
+            type="number"
+            class="manual-input"
+            [(ngModel)]="withdrawAmount"
+            (ngModelChange)="withdrawError = ''"
+            placeholder="Ex: 15000"
+            min="1"
+          />
+          <span class="currency-badge">FCFA</span>
+        </div>
+      </div>
+
+      <!-- Code PIN -->
+      <div class="pin-modal-wrap">
+        <label class="manual-label">
+          <ion-icon name="lock-closed-outline"></ion-icon>
+          Code PIN de confirmation
+        </label>
+        <input
+          type="password"
+          inputmode="numeric"
+          maxlength="4"
+          class="pin-modal-input"
+          [(ngModel)]="withdrawPin"
+          (ngModelChange)="withdrawError = ''"
+          placeholder="• • • •"
+        />
+      </div>
+
+      <p *ngIf="withdrawError" class="modal-error">{{ withdrawError }}</p>
+
+      <button
+        type="button"
+        class="btn-modal-confirm withdraw-confirm"
+        (click)="confirmWithdraw()"
+        [disabled]="withdrawLoading"
+      >
+        <ion-icon name="checkmark-circle-outline"></ion-icon>
+        {{ withdrawLoading ? 'Traitement...' : 'Confirmer le retrait' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Toast Notification Custom -->
+  <div *ngIf="toastMessage" class="floating-toast">
+    <ion-icon name="information-circle-outline"></ion-icon>
+    <span>{{ toastMessage }}</span>
+  </div>
+
 </ion-content>

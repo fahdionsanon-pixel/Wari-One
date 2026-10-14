@@ -1,5 +1,5 @@
-import { Component } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, ChangeDetectorRef, OnInit } from '@angular/core';
+import { Router, ActivatedRoute } from '@angular/router';
 import { ApiService } from '../../services/api.service';
 
 @Component({
@@ -8,40 +8,54 @@ import { ApiService } from '../../services/api.service';
   templateUrl: './send.page.html',
   styleUrls: ['./send.page.scss'],
 })
-export class SendPage {
+export class SendPage implements OnInit {
   toPhone = '';
   amount: number | null = null;
   pin = '';
   message = '';
   loading = false;
 
-  constructor(private api: ApiService, private router: Router) {}
+  constructor(
+    private api: ApiService,
+    private router: Router,
+    private route: ActivatedRoute,
+    private cdr: ChangeDetectorRef
+  ) {}
+
+  ngOnInit() {
+    this.route.queryParams.subscribe((params) => {
+      if (params['phone']) {
+        let phone = params['phone'].toString().trim();
+        if (phone.startsWith('+')) {
+          phone = phone.substring(1);
+        }
+        this.toPhone = phone;
+        this.cdr.detectChanges();
+      }
+    });
+  }
 
   async send() {
     this.message = '';
     if (!/^\d{4}$/.test(this.pin)) {
       this.message = 'Saisis ton code PIN (4 chiffres) pour confirmer l\'envoi';
+      this.cdr.detectChanges();
       return;
     }
     this.loading = true;
+    this.cdr.detectChanges();
     try {
       await this.api.transfer(this.toPhone, Number(this.amount), this.pin);
       // Refresh balance after successful transfer
       await this.api.getBalance();
       this.pin = '';
-      this.router.navigate(['/home']);
+      await this.router.navigate(['/home']);
     } catch (e: any) {
       this.message = e.message;
       this.pin = ''; // le PIN est toujours efface apres une tentative
-    }
-    this.loading = false;
-  }
-
-  // Permet de declencher les clics sur la zone neutre en desactivant le focus tactile
-  blurActiveElement() {
-    const active = document.activeElement as HTMLElement;
-    if (active && active.blur) {
-      active.blur();
+    } finally {
+      this.loading = false;
+      this.cdr.detectChanges();
     }
   }
 }

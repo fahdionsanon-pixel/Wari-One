@@ -9,10 +9,11 @@ const router = express.Router();
 
 // Inscription : numero verifie par OTP + code PIN (le numero sert d'identifiant)
 router.post('/register', async (req, res) => {
-  const { phone, pin } = req.body;
+  const { phone, pin, name } = req.body;
   if (!isPhone(phone) || !isPin(pin)) {
     return res.status(400).json({ error: 'Numero ou code PIN invalide' });
   }
+  const cleanName = (typeof name === 'string') ? name.trim() : '';
   try {
     await consumeVerification(db, phone); // refuse si le numero n'a pas ete verifie
     const pinHash = await bcrypt.hash(pin, 10); // le PIN n'est jamais stocke en clair
@@ -22,6 +23,7 @@ router.post('/register', async (req, res) => {
       if (snap.exists) throw new Error('EXISTS');
       t.set(ref, {
         phone: phone,
+        name: cleanName,
         pinHash: pinHash,
         balance: STARTING_BALANCE,
         failedAttempts: 0,
@@ -30,7 +32,7 @@ router.post('/register', async (req, res) => {
       });
     });
     const token = await auth.createCustomToken(phone);
-    res.json({ token });
+    res.json({ token, name: cleanName, phone });
   } catch (e) {
     if (e.message === 'NOT_VERIFIED') {
       return res.status(403).json({ error: 'Numero non verifie. Recommence la verification' });
@@ -53,8 +55,12 @@ router.post('/login', async (req, res) => {
     const failure = await checkPin(phone, pin, 'Numero ou code PIN incorrect');
     if (failure) return res.status(failure.status).json({ error: failure.error });
 
+    const snap = await db.collection('users').doc(phone).get();
+    const userData = snap.exists ? snap.data() : {};
+    const name = userData.name || '';
+
     const token = await auth.createCustomToken(phone);
-    res.json({ token });
+    res.json({ token, name, phone });
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: 'Erreur serveur' });

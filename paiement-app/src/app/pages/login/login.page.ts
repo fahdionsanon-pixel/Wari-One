@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { ApiService } from '../../services/api.service';
 import { AuthService } from '../../services/auth.service';
@@ -15,12 +15,18 @@ export class LoginPage {
   message = '';
   loading = false;
 
-  constructor(private api: ApiService, private router: Router, private auth: AuthService) {}
+  constructor(
+    private api: ApiService,
+    private router: Router,
+    private auth: AuthService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   async login() {
     this.message = '';
     if (!/^\d{8,15}$/.test(this.phone) || !/^\d{4}$/.test(this.pin)) {
       this.message = 'Numero (chiffres uniquement) ou code PIN (4 chiffres) invalide';
+      this.cdr.detectChanges();
       return;
     }
     this.loading = true;
@@ -28,21 +34,13 @@ export class LoginPage {
       await this.api.login(this.phone, this.pin);
       // After login, fetch balance to update the shared observable
       await this.api.getBalance();
-      // Store user info (phone as name for now)
-      this.auth.setUser(this.phone, this.phone);
       this.pin = '';
-      this.router.navigate(['/home']);
+      await this.router.navigate(['/home']);
     } catch (e: any) {
       this.message = e.message;
-    }
-    this.loading = false;
-  }
-
-  // Permet de declencher les clics sur la zone neutre en desactivant le focus tactile
-  blurActiveElement() {
-    const active = document.activeElement as HTMLElement;
-    if (active && active.blur) {
-      active.blur();
+    } finally {
+      this.loading = false;
+      this.cdr.detectChanges();
     }
   }
 }

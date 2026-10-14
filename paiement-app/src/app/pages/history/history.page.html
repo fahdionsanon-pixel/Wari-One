@@ -1,15 +1,10 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-back-button defaultHref="/home"></ion-back-button>
-    </ion-buttons>
-    <ion-title class="title-wari">Wari</ion-title>
-    <div class="subtitle-wari">Historique</div>
-  </ion-toolbar>
-</ion-header>
-
-<ion-content class="ion-padding" [class.ion-padding-horizontal-large]="true">
+<ion-content [fullscreen]="true" class="history-content ion-padding">
   <div class="history-wrap">
+    <div class="page-top-nav">
+      <button type="button" class="btn-back" routerLink="/home" title="Retour">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </button>
+    </div>
 
     <div class="history-header">
       <ion-icon name="time-outline"></ion-icon>

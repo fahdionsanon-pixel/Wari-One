@@ -8,7 +8,8 @@ const router = express.Router();
 router.get('/balance', verifyToken, async (req, res) => {
   const snap = await db.collection('users').doc(req.user.uid).get();
   if (!snap.exists) return res.status(404).json({ error: 'Profil introuvable' });
-  res.json({ balance: snap.data().balance });
+  const data = snap.data();
+  res.json({ balance: data.balance, name: data.name || '' });
 });
 
 // Transfere de l'argent a un autre utilisateur (par numero), apres confirmation par PIN
@@ -59,7 +60,82 @@ router.post('/transfer', verifyToken, async (req, res) => {
   }
 });
 
-// Historique : transactions envoyees et recues
+// Deposer de l'argent sur son compte
+router.post('/deposit', verifyToken, async (req, res) => {
+  const { amount } = req.body;
+  const value = Math.round(Number(amount));
+  if (isNaN(value) || value <= 0) {
+    return res.status(400).json({ error: 'Montant invalide' });
+  }
+  const userRef = db.collection('users').doc(req.user.uid);
+  try {
+    let newBalance = 0;
+    await db.runTransaction(async (t) => {
+      const snap = await t.get(userRef);
+      if (!snap.exists) throw new Error('NOT_FOUND');
+      newBalance = (snap.data().balance || 0) + value;
+      t.update(userRef, { balance: newBalance });
+      t.set(db.collection('transactions').doc(), {
+        from: 'DEPOT',
+        to: req.user.uid,
+        amount: value,
+        createdAt: FieldValue.serverTimestamp(),
+      });
+    });
+    res.json({ ok: true, balance: newBalance });
+  } catch (e) {
+    if (e.message === 'NOT_FOUND') {
+      return res.status(404).json({ error: 'Compte introuvable' });
+    }
+    console.error(e);
+    res.status(500).json({ error: 'Erreur lors du dépôt' });
+  }
+});
+
+// Retirer de l'argent de son compte (securise par code PIN)
+router.post('/withdraw', verifyToken, async (req, res) => {
+  const { amount, pin } = req.body;
+  const value = Math.round(Number(amount));
+  if (isNaN(value) || value <= 0) {
+    return res.status(400).json({ error: 'Montant invalide' });
+  }
+  if (!isPin(pin)) {
+    return res.status(400).json({ error: 'Code PIN requis (4 chiffres)' });
+  }
+  const userRef = db.collection('users').doc(req.user.uid);
+  try {
+    const failure = await checkPin(req.user.uid, pin, 'Code PIN incorrect');
+    if (failure) return res.status(failure.status).json({ error: failure.error });
+
+    let newBalance = 0;
+    await db.runTransaction(async (t) => {
+      const snap = await t.get(userRef);
+      if (!snap.exists) throw new Error('NOT_FOUND');
+      const current = snap.data().balance || 0;
+      if (current < value) throw new Error('INSUFFICIENT');
+      newBalance = current - value;
+      t.update(userRef, { balance: newBalance });
+      t.set(db.collection('transactions').doc(), {
+        from: req.user.uid,
+        to: 'RETRAIT',
+        amount: value,
+        createdAt: FieldValue.serverTimestamp(),
+      });
+    });
+    res.json({ ok: true, balance: newBalance });
+  } catch (e) {
+    if (e.message === 'NOT_FOUND') {
+      return res.status(404).json({ error: 'Compte introuvable' });
+    }
+    if (e.message === 'INSUFFICIENT') {
+      return res.status(400).json({ error: 'Solde insuffisant pour effectuer ce retrait' });
+    }
+    console.error(e);
+    res.status(500).json({ error: 'Erreur lors du retrait' });
+  }
+});
+
+// Historique : transactions envoyees, recues, depots et retraits
 router.get('/transactions', verifyToken, async (req, res) => {
   const uid = req.user.uid;
   const [sent, received] = await Promise.all([
@@ -68,10 +144,21 @@ router.get('/transactions', verifyToken, async (req, res) => {
   ]);
   const list = [...sent.docs, ...received.docs].map((d) => {
     const data = d.data();
+    let type = data.from === uid ? 'envoye' : 'recu';
+    let other = data.from === uid ? data.to : data.from;
+
+    if (data.from === 'DEPOT') {
+      type = 'depot';
+      other = 'Dépôt d\'argent';
+    } else if (data.to === 'RETRAIT') {
+      type = 'retrait';
+      other = 'Retrait d\'argent';
+    }
+
     return {
       id: d.id,
-      type: data.from === uid ? 'envoye' : 'recu',
-      other: data.from === uid ? data.to : data.from,
+      type,
+      other,
       amount: data.amount,
       date: data.createdAt ? data.createdAt.toMillis() : 0,
     };

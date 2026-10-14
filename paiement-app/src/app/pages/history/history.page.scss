@@ -1,8 +1,37 @@
-/* Page Historique - Styles naturels */
+.history-content {
+  --background: #f1f5f9;
+}
+
 .history-wrap {
-  padding: 20px 16px 40px;
-  background: linear-gradient(135deg, #f0f4ff 0%, #fafcff 100%);
+  padding: 16px 16px 40px;
+  background: #f1f5f9;
   min-height: 100%;
+}
+
+.page-top-nav {
+  margin-bottom: 16px;
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.btn-back {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1e293b;
+  font-size: 22px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s ease;
+
+  &:active {
+    transform: scale(0.92);
+    background: #f8fafc;
+  }
 }
 
 .history-header {

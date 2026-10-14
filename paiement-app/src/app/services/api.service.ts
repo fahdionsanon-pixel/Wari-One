@@ -21,8 +21,14 @@ export class ApiService {
       headers,
       body: body ? JSON.stringify(body) : undefined,
     });
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || 'Erreur');
+    const text = await response.text();
+    let data: any = {};
+    try {
+      data = text ? JSON.parse(text) : {};
+    } catch {
+      throw new Error(`Erreur serveur (${response.status})`);
+    }
+    if (!response.ok) throw new Error(data.error || `Erreur (${response.status})`);
     return data;
   }
 
@@ -34,24 +40,50 @@ export class ApiService {
     return this.request('/otp/verify', 'POST', { phone, code }, false);
   }
 
-  // Inscription : cree le compte (numero verifie + PIN) puis ouvre la session
-  async register(phone: string, pin: string) {
-    const data = await this.request('/register', 'POST', { phone, pin }, false);
+  // Inscription : cree le compte (numero verifie + PIN + nom) puis ouvre la session
+  async register(phone: string, pin: string, name: string = '') {
+    const data = await this.request('/register', 'POST', { phone, pin, name }, false);
+    this.auth.setUser(phone, data.name || name);
     await this.auth.signInWithToken(data.token);
+    return data;
   }
 
   // Connexion : verifie numero + PIN puis ouvre la session
   async login(phone: string, pin: string) {
     const data = await this.request('/login', 'POST', { phone, pin }, false);
+    this.auth.setUser(phone, data.name || '');
     await this.auth.signInWithToken(data.token);
+    return data;
   }
 
   getBalance() {
     return this.request('/balance').then(data => {
       this.balanceSubject.next(data.balance ?? null);
+      if (data.name) {
+        this.auth.setName(data.name);
+      }
       return data;
     });
   }
+
+  deposit(amount: number) {
+    return this.request('/deposit', 'POST', { amount }).then(data => {
+      if (data.balance !== undefined) {
+        this.balanceSubject.next(data.balance);
+      }
+      return data;
+    });
+  }
+
+  withdraw(amount: number, pin: string) {
+    return this.request('/withdraw', 'POST', { amount, pin }).then(data => {
+      if (data.balance !== undefined) {
+        this.balanceSubject.next(data.balance);
+      }
+      return data;
+    });
+  }
+
   transfer(toPhone: string, amount: number, pin: string) {
     return this.request('/transfer', 'POST', { toPhone, amount, pin });
   }
