@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { ApiService } from '../../services/api.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -14,7 +15,7 @@ export class LoginPage {
   message = '';
   loading = false;
 
-  constructor(private api: ApiService, private router: Router) {}
+  constructor(private api: ApiService, private router: Router, private auth: AuthService) {}
 
   async login() {
     this.message = '';
@@ -27,6 +28,8 @@ export class LoginPage {
       await this.api.login(this.phone, this.pin);
       // After login, fetch balance to update the shared observable
       await this.api.getBalance();
+      // Store user info (phone as name for now)
+      this.auth.setUser(this.phone, this.phone);
       this.pin = '';
       this.router.navigate(['/home']);
     } catch (e: any) {

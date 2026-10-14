@@ -16,7 +16,7 @@ export class HomePage implements OnInit, OnDestroy {
   private balanceSub!: Subscription;
 
   constructor(
-    private auth: AuthService,
+    public auth: AuthService,
     private api: ApiService,
     private router: Router
   ) {}

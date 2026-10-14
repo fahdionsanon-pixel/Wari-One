@@ -22,4 +22,21 @@ export class AuthService {
     if (!user) throw new Error('Non connecte');
     return user.getIdToken();
   }
+
+  // User info stored after login
+  private phone: string = '';
+  private name: string = '';
+
+  setUser(phone: string, name: string = '') {
+    this.phone = phone;
+    this.name = name || phone;
+  }
+
+  getPhone(): string {
+    return this.phone;
+  }
+
+  getName(): string {
+    return this.name || this.phone;
+  }
 }

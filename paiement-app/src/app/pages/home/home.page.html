@@ -25,7 +25,9 @@
           <span class="amount" *ngIf="balance !== null">{{ balance | number }}</span>
           <span class="amount" *ngIf="balance === null">...</span>
         </div>
-        <div class="balance-hint">Argent fictif à usage démonstratif</div>
+        <div class="balance-phone">
+          <span>{{ auth.getPhone() }}</span>
+        </div
       </div>
     </div>
 
