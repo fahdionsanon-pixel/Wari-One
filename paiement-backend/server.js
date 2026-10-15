@@ -14,8 +14,8 @@ app.use(authRoutes);                  // /register et /login
 app.use(paymentRoutes);               // /balance, /transfer, /transactions
 
 const PORT = 3000;
-const server = app.listen(PORT, () => {
-  console.log('Backend demarre sur le port ' + PORT);
+const server = app.listen(PORT, '0.0.0.0', () => {
+  console.log('Backend demarre sur http://0.0.0.0:' + PORT + ' (accessible sur le reseau)');
 });
 
 // Gestion propre de l'arret

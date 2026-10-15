@@ -1,6 +1,6 @@
 export const environment = {
   production: true,
-  apiUrl: 'http://localhost:3000',
+  apiUrl: 'http://192.168.11.115:3000',
   firebaseConfig: {
     apiKey: 'AIzaSyDsn9K0IMJvt4fU7t5g-KAsNQDWUIRaUww',
     authDomain: 'wari-one.firebaseapp.com',
