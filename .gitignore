@@ -35,4 +35,6 @@ pnpm-debug.log*
 # Misc
 .capacitor/
 capacitor.config.*
-*.exe
+*.exe
+tools/
+

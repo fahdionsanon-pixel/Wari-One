@@ -1,6 +1,6 @@
 export const environment = {
   production: false,
-  apiUrl: 'http://192.168.11.115:3000',
+  apiUrl: 'https://expenditure-direction-cleveland-wear.trycloudflare.com',
   firebaseConfig: {
     apiKey: 'AIzaSyDsn9K0IMJvt4fU7t5g-KAsNQDWUIRaUww',
     authDomain: 'wari-one.firebaseapp.com',
