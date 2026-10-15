@@ -53,6 +53,7 @@ export class HomePage implements OnInit, OnDestroy {
   loadingTransactions = false;
 
   private balanceSub!: Subscription;
+  private autoRefreshInterval: any = null;
 
   constructor(
     public auth: AuthService,
@@ -93,22 +94,53 @@ export class HomePage implements OnInit, OnDestroy {
     // Génération du QR Code
     await this.generateQrCode();
 
-    // Chargement des transactions
+    // Chargement initial des transactions
     await this.loadTransactions();
+
+    // Démarrage de l'actualisation automatique toutes les 5 secondes
+    this.startAutoRefresh();
   }
 
   ngOnDestroy() {
     this.stopScannerStream();
+    this.stopAutoRefresh();
     if (this.balanceSub) {
       this.balanceSub.unsubscribe();
     }
   }
 
   async ionViewWillEnter() {
-    await this.api.getBalance().catch(() => {});
+    await this.refreshData(false);
     await this.generateQrCode();
-    await this.loadTransactions();
+    this.startAutoRefresh();
     this.cdr.detectChanges();
+  }
+
+  ionViewWillLeave() {
+    this.stopAutoRefresh();
+  }
+
+  startAutoRefresh() {
+    this.stopAutoRefresh();
+    this.autoRefreshInterval = setInterval(() => {
+      this.refreshData(true);
+    }, 5000);
+  }
+
+  stopAutoRefresh() {
+    if (this.autoRefreshInterval) {
+      clearInterval(this.autoRefreshInterval);
+      this.autoRefreshInterval = null;
+    }
+  }
+
+  async refreshData(silent = false) {
+    try {
+      await Promise.all([
+        this.api.getBalance().catch(() => {}),
+        this.fetchTransactions(silent)
+      ]);
+    } catch {}
   }
 
   async generateQrCode() {
@@ -135,15 +167,26 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   async loadTransactions() {
-    this.loadingTransactions = true;
+    await this.fetchTransactions(false);
+  }
+
+  async fetchTransactions(silent = false) {
+    if (!silent) {
+      this.loadingTransactions = true;
+    }
     try {
-      this.transactions = await this.api.getTransactions();
+      const list = await this.api.getTransactions();
+      this.transactions = Array.isArray(list) ? list : [];
       this.filterTransactions();
     } catch (e: any) {
-      this.transactions = [];
-      this.filteredTransactions = [];
+      if (!silent) {
+        this.transactions = [];
+        this.filteredTransactions = [];
+      }
     } finally {
-      this.loadingTransactions = false;
+      if (!silent) {
+        this.loadingTransactions = false;
+      }
       this.cdr.detectChanges();
     }
   }
